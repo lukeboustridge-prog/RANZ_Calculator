@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Apprentice Package Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.4;
+      color: #111827;
+      background: #e5e7eb;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    .app {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 1.75rem;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .tagline {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      color: #4b5563;
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      border: 1px solid #e5e7eb;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      margin-bottom: 0.75rem;
+    }
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: #6b7280;
+    }
+
+    .field-inline {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .field-inline input {
+      flex: 1;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 0.45rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
+    }
+
+    .suffix {
+      font-size: 0.85rem;
+      color: #4b5563;
+      white-space: nowrap;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 0.75rem;
+    }
+
+    .result-main {
+      padding: 0.9rem 1rem;
+      border-radius: 10px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+    }
+
+    .result-main h3 {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #1d4ed8;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .result-main .value {
+      margin-top: 0.1rem;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .result-main .sub {
+      margin-top: 0.2rem;
+      font-size: 0.85rem;
+      color: #4b5563;
+    }
+
+    .result-breakdown {
+      font-size: 0.88rem;
+      color: #374151;
+    }
+
+    .result-breakdown h4 {
+      margin: 0.25rem 0;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 0.05rem 0;
+    }
+
+    .result-row span:last-child {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .result-note {
+      margin-top: 0.7rem;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .footer-note {
+      margin-top: 1rem;
+      font-size: 0.78rem;
+      color: #9ca3af;
+    }
+
+    @media (max-width: 600px) {
+      .app {
+        margin: 0.75rem;
+        padding: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Apprentice Package Calculator</h1>
+    <p class="tagline">
+      Put in the details of a job offer and see what the total package is worth, not just the hourly rate.
+    </p>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Pay and hours</h2>
+
+        <div class="field-group">
+          <label for="hourlyRate">Base hourly rate</label>
+          <div class="field-inline">
+            <span class="suffix">$</span>
+            <input id="hourlyRate" type="number" min="0" step="0.01" value="25" />
+            <span class="suffix">per hour</span>
+          </div>
+          <div class="hint">Your standard hourly rate before tax.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="hoursPerWeek">Standard hours per week</label>
+          <div class="field-inline">
+            <input id="hoursPerWeek" type="number" min="0" step="0.5" value="40" />
+            <span class="suffix">hours</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="overtimeHours">Overtime hours per week</label>
+          <div class="field-inline">
+            <input id="overtimeHours" type="number" min="0" step="0.5" value="0" />
+            <span class="suffix">hours</span>
+          </div>
+          <div class="hint">Average per week over a year. Use zero if you are not sure.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="overtimeMultiplier">Overtime pay rate</label>
+          <div class="field-inline">
+            <input id="overtimeMultiplier" type="number" min="1" step="0.1" value="1.5" />
+            <span class="suffix">times your base rate</span>
+          </div>
+          <div class="hint">For time and a half use 1.5, for double time use 2.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="toolAllowanceWeekly">Tool allowance (paid cash)</label>
+          <div class="field-inline">
+            <span class="suffix">$</span>
+            <input id="toolAllowanceWeekly" type="number" min="0" step="0.01" value="0" />
+            <span class="suffix">per week</span>
+          </div>
+          <div class="hint">Only include cash tool allowance that shows on your payslip.</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Perks and support</h2>
+
+        <div class="field-group">
+          <label for="vehicleWeekly">Work vehicle value</label>
+          <div class="field-inline">
+            <span class="suffix">$</span>
+            <input id="vehicleWeekly" type="number" min="0" step="0.01" value="0" />
+            <span class="suffix">per week</span>
+          </div>
+          <div class="hint">If you get a vehicle you can use, estimate what that is worth to you per week.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="fuelWeekly">Fuel card value</label>
+          <div class="field-inline">
+            <span class="suffix">$</span>
+            <input id="fuelWeekly" type="number" min="0" step="0.01" value="0" />
+            <span class="suffix">per week</span>
+          </div>
+          <div class="hint">Average personal fuel you save each week.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="uniformAnnual">Uniforms, boots, PPE</label>
+          <div class="field-inline">
+            <span class="suffix">$</span>
+            <input id="uniformAnnual" type="number" min="0" step="1" value="0" />
+            <span class="suffix">per year the company covers</span>
+          </div>
+          <div class="hint">What you would otherwise have to buy yourself each year.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="phoneWeekly">Phone or phone allowance</label>
+          <div class="field-inline">
+            <span class="suffix">$</span>
+            <input id="phoneWeekly" type="number" min="0" step="0.01" value="0" />
+            <span class="suffix">per week</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="otherWeekly">Other regular perks</label>
+          <div class="field-inline">
+            <span class="suffix">$</span>
+            <input id="otherWeekly" type="number" min="0" step="0.01" value="0" />
+            <span class="suffix">per week</span>
+          </div>
+          <div class="hint">Anything else the employer pays for that saves you money.</div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 0.75rem 0;" />
+
+        <div class="field-group">
+          <label for="trainingCostTotal">Training or course fees covered</label>
+          <div class="field-inline">
+            <span class="suffix">$</span>
+            <input id="trainingCostTotal" type="number" min="0" step="1" value="0" />
+            <span class="suffix">total cost</span>
+          </div>
+          <div class="hint">Total value of fees the employer pays over the whole apprenticeship or course.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="trainingCoveredPercent">Percent covered by employer</label>
+          <div class="field-inline">
+            <input id="trainingCoveredPercent" type="number" min="0" max="100" step="1" value="100" />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="trainingMonths">Training period</label>
+          <div class="field-inline">
+            <input id="trainingMonths" type="number" min="0" step="1" value="36" />
+            <span class="suffix">months</span>
+          </div>
+          <div class="hint">How long those training costs are spread over.</div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>Your package summary</h2>
+      <div class="results-grid">
+        <div class="result-main">
+          <h3>Total weekly package</h3>
+          <div id="weeklyTotal" class="value">$0.00</div>
+          <div class="sub">
+            Cash plus perks and training support.
+          </div>
+        </div>
+
+        <div class="result-main">
+          <h3>Effective hourly value</h3>
+          <div id="effectiveHourlyTotal" class="value">$0.00</div>
+          <div class="sub">
+            What the whole package is worth per hour you work.
+          </div>
+        </div>
+
+        <div class="result-main">
+          <h3>Annual package value</h3>
+          <div id="annualTotal" class="value">$0.00</div>
+          <div class="sub">
+            Based on 52 weeks at this level.
+          </div>
+        </div>
+      </div>
+
+      <div class="results-grid" style="margin-top: 1rem;">
+        <div class="result-breakdown">
+          <h4>Weekly breakdown</h4>
+          <div class="result-row">
+            <span>Cash pay (base + overtime + cash tool allowance)</span>
+            <span id="cashWeekly">$0.00</span>
+          </div>
+          <div class="result-row">
+            <span>Perks and support value</span>
+            <span id="perksWeekly">$0.00</span>
+          </div>
+          <div class="result-row">
+            <span>Training support (weekly equivalent)</span>
+            <span id="trainingWeekly">$0.00</span>
+          </div>
+          <div class="result-row">
+            <span>Total weekly package</span>
+            <span id="totalWeekly">$0.00</span>
+          </div>
+
+          <h4 style="margin-top: 0.75rem;">Hourly comparison</h4>
+          <div class="result-row">
+            <span>Base hourly rate</span>
+            <span id="baseHourly">$0.00</span>
+          </div>
+          <div class="result-row">
+            <span>Effective hourly (cash only)</span>
+            <span id="effectiveHourlyCash">$0.00</span>
+          </div>
+          <div class="result-row">
+            <span>Effective hourly (cash + perks)</span>
+            <span id="effectiveHourlyTotalSmall">$0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="result-note">
+        This tool is for comparison and planning only. It ignores tax and things like KiwiSaver and is not financial advice.  
+        Use it to compare different offers on a like for like basis.
+      </p>
+    </section>
+
+    <p class="footer-note">
+      Tip: Try putting in two different offers and compare the effective hourly value, not just the base rate.
+    </p>
+  </div>
+
+  <script>
+    function num(id) {
+      const value = parseFloat(document.getElementById(id).value);
+      return isNaN(value) ? 0 : value;
+    }
+
+    function formatMoney(value) {
+      return value.toLocaleString("en-NZ", {
+        style: "currency",
+        currency: "NZD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function recalc() {
+      const hourlyRate = num("hourlyRate");
+      const hoursPerWeek = num("hoursPerWeek");
+      const overtimeHours = num("overtimeHours");
+      const overtimeMultiplier = num("overtimeMultiplier") || 1;
+
+      const toolAllowanceWeekly = num("toolAllowanceWeekly");
+
+      const vehicleWeekly = num("vehicleWeekly");
+      const fuelWeekly = num("fuelWeekly");
+      const uniformAnnual = num("uniformAnnual");
+      const phoneWeekly = num("phoneWeekly");
+      const otherWeekly = num("otherWeekly");
+
+      const trainingCostTotal = num("trainingCostTotal");
+      const trainingCoveredPercent = num("trainingCoveredPercent");
+      const trainingMonths = num("trainingMonths");
+
+      const baseWeekly = hourlyRate * hoursPerWeek;
+      const overtimeWeekly = hourlyRate * overtimeMultiplier * overtimeHours;
+
+      const cashWeekly = baseWeekly + overtimeWeekly + toolAllowanceWeekly;
+
+      const uniformWeekly = uniformAnnual / 52;
+      let trainingWeekly = 0;
+
+      if (trainingCostTotal > 0 && trainingMonths > 0 && trainingCoveredPercent > 0) {
+        const coveredTotal = trainingCostTotal * (trainingCoveredPercent / 100);
+        const weeks = trainingMonths * 4.345; // average weeks per month
+        trainingWeekly = coveredTotal / weeks;
+      }
+
+      const perksWeeklyRaw =
+        vehicleWeekly + fuelWeekly + uniformWeekly + phoneWeekly + otherWeekly + trainingWeekly;
+
+      const totalWeekly = cashWeekly + perksWeeklyRaw;
+      const totalHours = hoursPerWeek + overtimeHours;
+
+      const effectiveHourlyCash = totalHours > 0 ? cashWeekly / totalHours : 0;
+      const effectiveHourlyTotal = totalHours > 0 ? totalWeekly / totalHours : 0;
+      const annualTotal = totalWeekly * 52;
+
+      // Update DOM
+      document.getElementById("weeklyTotal").textContent = formatMoney(totalWeekly);
+      document.getElementById("annualTotal").textContent = formatMoney(annualTotal);
+      document.getElementById("effectiveHourlyTotal").textContent = formatMoney(effectiveHourlyTotal);
+
+      document.getElementById("cashWeekly").textContent = formatMoney(cashWeekly);
+      document.getElementById("perksWeekly").textContent = formatMoney(
+        perksWeeklyRaw - trainingWeekly
+      );
+      document.getElementById("trainingWeekly").textContent = formatMoney(trainingWeekly);
+      document.getElementById("totalWeekly").textContent = formatMoney(totalWeekly);
+
+      document.getElementById("baseHourly").textContent = formatMoney(hourlyRate);
+      document.getElementById("effectiveHourlyCash").textContent = formatMoney(effectiveHourlyCash);
+      document.getElementById("effectiveHourlyTotalSmall").textContent = formatMoney(
+        effectiveHourlyTotal
+      );
+    }
+
+    const inputs = document.querySelectorAll("input[type='number']");
+    inputs.forEach((input) => {
+      input.addEventListener("input", recalc);
+    });
+
+    recalc();
+  </script>
+</body>
+</html>
