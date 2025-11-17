@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Apprentice Package Calculator</title>
+  <title>RANZ Apprentice Payrate Calculator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -26,15 +26,32 @@
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
     }
 
+    .header {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .header img {
+      height: 60px;
+      width: auto;
+    }
+
     h1 {
-      margin-top: 0;
+      margin: 0;
       font-size: 1.8rem;
-      margin-bottom: 0.25rem;
+    }
+
+    .org-tagline {
+      margin: 0.15rem 0 0;
+      font-size: 0.85rem;
+      color: #4b5563;
     }
 
     .tagline {
-      margin-top: 0;
-      margin-bottom: 1.5rem;
+      margin-top: 0.75rem;
+      margin-bottom: 1.2rem;
       color: #4b5563;
       font-size: 0.95rem;
     }
@@ -180,14 +197,30 @@
         margin: 0.75rem;
         padding: 1.25rem;
       }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <h1>Apprentice Package Calculator</h1>
+    <header class="header">
+      <!-- Update src to match your logo file path in the repo -->
+      <img src="RANZ Logo RGB.png" alt="Roofing Association of New Zealand logo" />
+      <div>
+        <h1>RANZ Apprentice Payrate Calculator</h1>
+        <p class="org-tagline">Roofing Association of New Zealand</p>
+      </div>
+    </header>
+
     <p class="tagline">
-      Put in the details of a job offer and see what the total package is worth, not just the hourly rate.
+      This tool helps you look at the full value of a roofing apprenticeship, not just the hourly rate.
+      Put in the details of a job offer and it will show you the total weekly and yearly value of the package,
+      including things like vehicle use, fuel, uniforms and training support. It is a guide only and does not replace
+      independent financial advice.
     </p>
 
     <div class="grid">
@@ -202,6 +235,16 @@
             <span class="suffix">per hour</span>
           </div>
           <div class="hint">Your standard hourly rate before tax.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="toolAllowanceHourly">Tool allowance (hourly)</label>
+          <div class="field-inline">
+            <span class="suffix">$</span>
+            <input id="toolAllowanceHourly" type="number" min="0" step="0.01" value="0" />
+            <span class="suffix">per hour</span>
+          </div>
+          <div class="hint">Any extra hourly amount paid as a tool allowance.</div>
         </div>
 
         <div class="field-group">
@@ -228,16 +271,6 @@
             <span class="suffix">times your base rate</span>
           </div>
           <div class="hint">For time and a half use 1.5, for double time use 2.</div>
-        </div>
-
-        <div class="field-group">
-          <label for="toolAllowanceWeekly">Tool allowance (paid cash)</label>
-          <div class="field-inline">
-            <span class="suffix">$</span>
-            <input id="toolAllowanceWeekly" type="number" min="0" step="0.01" value="0" />
-            <span class="suffix">per week</span>
-          </div>
-          <div class="hint">Only include cash tool allowance that shows on your payslip.</div>
         </div>
       </section>
 
@@ -356,7 +389,7 @@
         <div class="result-breakdown">
           <h4>Weekly breakdown</h4>
           <div class="result-row">
-            <span>Cash pay (base + overtime + cash tool allowance)</span>
+            <span>Cash pay (base + overtime + tool allowance)</span>
             <span id="cashWeekly">$0.00</span>
           </div>
           <div class="result-row">
@@ -389,7 +422,7 @@
       </div>
 
       <p class="result-note">
-        This tool is for comparison and planning only. It ignores tax and things like KiwiSaver and is not financial advice.  
+        This calculator is for comparison and planning only. It ignores tax and things like KiwiSaver and is not financial advice.
         Use it to compare different offers on a like for like basis.
       </p>
     </section>
@@ -416,11 +449,10 @@
 
     function recalc() {
       const hourlyRate = num("hourlyRate");
+      const toolAllowanceHourly = num("toolAllowanceHourly");
       const hoursPerWeek = num("hoursPerWeek");
       const overtimeHours = num("overtimeHours");
       const overtimeMultiplier = num("overtimeMultiplier") || 1;
-
-      const toolAllowanceWeekly = num("toolAllowanceWeekly");
 
       const vehicleWeekly = num("vehicleWeekly");
       const fuelWeekly = num("fuelWeekly");
@@ -432,8 +464,11 @@
       const trainingCoveredPercent = num("trainingCoveredPercent");
       const trainingMonths = num("trainingMonths");
 
+      const totalHours = hoursPerWeek + overtimeHours;
+
       const baseWeekly = hourlyRate * hoursPerWeek;
       const overtimeWeekly = hourlyRate * overtimeMultiplier * overtimeHours;
+      const toolAllowanceWeekly = toolAllowanceHourly * totalHours;
 
       const cashWeekly = baseWeekly + overtimeWeekly + toolAllowanceWeekly;
 
@@ -450,13 +485,11 @@
         vehicleWeekly + fuelWeekly + uniformWeekly + phoneWeekly + otherWeekly + trainingWeekly;
 
       const totalWeekly = cashWeekly + perksWeeklyRaw;
-      const totalHours = hoursPerWeek + overtimeHours;
 
       const effectiveHourlyCash = totalHours > 0 ? cashWeekly / totalHours : 0;
       const effectiveHourlyTotal = totalHours > 0 ? totalWeekly / totalHours : 0;
       const annualTotal = totalWeekly * 52;
 
-      // Update DOM
       document.getElementById("weeklyTotal").textContent = formatMoney(totalWeekly);
       document.getElementById("annualTotal").textContent = formatMoney(annualTotal);
       document.getElementById("effectiveHourlyTotal").textContent = formatMoney(effectiveHourlyTotal);
