@@ -208,7 +208,7 @@
 <body>
   <div class="app">
     <header class="header">
-      <!-- Update src to match your logo file path in the repo -->
+      <!-- Make sure this filename matches what you commit to the repo -->
       <img src="RANZ Logo RGB.png" alt="Roofing Association of New Zealand logo" />
       <div>
         <h1>RANZ Apprentice Payrate Calculator</h1>
@@ -219,7 +219,7 @@
     <p class="tagline">
       This tool helps you look at the full value of a roofing apprenticeship, not just the hourly rate.
       Put in the details of a job offer and it will show you the total weekly and yearly value of the package,
-      including things like vehicle use, fuel, uniforms and training support. It is a guide only and does not replace
+      including things like vehicle use, fuel, uniforms, training support and extra leave. It is a guide only and does not replace
       independent financial advice.
     </p>
 
@@ -253,6 +253,15 @@
             <input id="hoursPerWeek" type="number" min="0" step="0.5" value="40" />
             <span class="suffix">hours</span>
           </div>
+        </div>
+
+        <div class="field-group">
+          <label for="guaranteedHoursPerWeek">Guaranteed hours per week</label>
+          <div class="field-inline">
+            <input id="guaranteedHoursPerWeek" type="number" min="0" step="0.5" value="40" />
+            <span class="suffix">hours</span>
+          </div>
+          <div class="hint">Hours you are paid for every week, even if work is quiet.</div>
         </div>
 
         <div class="field-group">
@@ -355,6 +364,32 @@
           <div class="hint">How long those training costs are spread over.</div>
         </div>
       </section>
+
+      <section class="card">
+        <h2>Leave and entitlements</h2>
+
+        <div class="field-group">
+          <label for="annualLeaveDays">Total annual leave</label>
+          <div class="field-inline">
+            <input id="annualLeaveDays" type="number" min="0" step="1" value="20" />
+            <span class="suffix">days per year</span>
+          </div>
+          <div class="hint">NZ minimum is 20 days or 4 weeks. Anything above that is counted as extra value.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="sickLeaveDays">Total sick leave</label>
+          <div class="field-inline">
+            <input id="sickLeaveDays" type="number" min="0" step="1" value="10" />
+            <span class="suffix">days per year</span>
+          </div>
+          <div class="hint">NZ minimum is 10 days. Extra days are counted as extra value.</div>
+        </div>
+
+        <div class="hint">
+          Extra leave days are converted into a weekly dollar value using your base hourly rate and normal daily hours.
+        </div>
+      </section>
     </div>
 
     <section class="card">
@@ -401,6 +436,10 @@
             <span id="trainingWeekly">$0.00</span>
           </div>
           <div class="result-row">
+            <span>Extra leave and sick leave (weekly)</span>
+            <span id="leaveWeekly">$0.00</span>
+          </div>
+          <div class="result-row">
             <span>Total weekly package</span>
             <span id="totalWeekly">$0.00</span>
           </div>
@@ -421,6 +460,28 @@
         </div>
       </div>
 
+      <h3 style="margin-top: 1.25rem; font-size: 1rem;">Guaranteed weekly breakdown</h3>
+      <div class="results-grid">
+        <div class="result-breakdown">
+          <div class="result-row">
+            <span>Guaranteed hours per week</span>
+            <span id="guaranteedHoursDisplay">0</span>
+          </div>
+          <div class="result-row">
+            <span>Guaranteed weekly cash (base + tools)</span>
+            <span id="guaranteedCashWeekly">$0.00</span>
+          </div>
+          <div class="result-row">
+            <span>Guaranteed weekly package (cash + perks)</span>
+            <span id="guaranteedTotalWeekly">$0.00</span>
+          </div>
+          <div class="result-row">
+            <span>Effective hourly on guaranteed hours</span>
+            <span id="guaranteedEffectiveHourly">$0.00</span>
+          </div>
+        </div>
+      </div>
+
       <p class="result-note">
         This calculator is for comparison and planning only. It ignores tax and things like KiwiSaver and is not financial advice.
         Use it to compare different offers on a like for like basis.
@@ -428,7 +489,7 @@
     </section>
 
     <p class="footer-note">
-      Tip: Try putting in two different offers and compare the effective hourly value, not just the base rate.
+      Tip: Try putting in two different offers and compare both the effective hourly value and the guaranteed weekly package.
     </p>
   </div>
 
@@ -450,7 +511,9 @@
     function recalc() {
       const hourlyRate = num("hourlyRate");
       const toolAllowanceHourly = num("toolAllowanceHourly");
+
       const hoursPerWeek = num("hoursPerWeek");
+      const guaranteedHours = num("guaranteedHoursPerWeek");
       const overtimeHours = num("overtimeHours");
       const overtimeMultiplier = num("overtimeMultiplier") || 1;
 
@@ -463,6 +526,9 @@
       const trainingCostTotal = num("trainingCostTotal");
       const trainingCoveredPercent = num("trainingCoveredPercent");
       const trainingMonths = num("trainingMonths");
+
+      const annualLeaveDays = num("annualLeaveDays");
+      const sickLeaveDays = num("sickLeaveDays");
 
       const totalHours = hoursPerWeek + overtimeHours;
 
@@ -481,8 +547,29 @@
         trainingWeekly = coveredTotal / weeks;
       }
 
+      // Extra leave and sick leave value above minimums
+      const MIN_ANNUAL_LEAVE = 20;
+      const MIN_SICK_LEAVE = 10;
+
+      const extraLeaveDays = Math.max(0, annualLeaveDays - MIN_ANNUAL_LEAVE);
+      const extraSickDays = Math.max(0, sickLeaveDays - MIN_SICK_LEAVE);
+
+      const workingDaysPerWeek = 5;
+      const dailyHours = workingDaysPerWeek > 0 ? (hoursPerWeek / workingDaysPerWeek) : 0;
+
+      const extraLeaveAnnualValue = extraLeaveDays * dailyHours * hourlyRate;
+      const extraSickAnnualValue = extraSickDays * dailyHours * hourlyRate;
+
+      const extraLeaveWeekly = (extraLeaveAnnualValue + extraSickAnnualValue) / 52;
+
       const perksWeeklyRaw =
-        vehicleWeekly + fuelWeekly + uniformWeekly + phoneWeekly + otherWeekly + trainingWeekly;
+        vehicleWeekly +
+        fuelWeekly +
+        uniformWeekly +
+        phoneWeekly +
+        otherWeekly +
+        trainingWeekly +
+        extraLeaveWeekly;
 
       const totalWeekly = cashWeekly + perksWeeklyRaw;
 
@@ -490,21 +577,41 @@
       const effectiveHourlyTotal = totalHours > 0 ? totalWeekly / totalHours : 0;
       const annualTotal = totalWeekly * 52;
 
+      // Guaranteed breakdown
+      const guaranteedBaseWeekly = hourlyRate * guaranteedHours;
+      const guaranteedToolWeekly = toolAllowanceHourly * guaranteedHours;
+      const guaranteedCashWeekly = guaranteedBaseWeekly + guaranteedToolWeekly;
+      const guaranteedTotalWeekly = guaranteedCashWeekly + perksWeeklyRaw;
+      const guaranteedEffectiveHourly =
+        guaranteedHours > 0 ? guaranteedTotalWeekly / guaranteedHours : 0;
+
+      // Update main summary
       document.getElementById("weeklyTotal").textContent = formatMoney(totalWeekly);
       document.getElementById("annualTotal").textContent = formatMoney(annualTotal);
       document.getElementById("effectiveHourlyTotal").textContent = formatMoney(effectiveHourlyTotal);
 
+      // Weekly breakdown
       document.getElementById("cashWeekly").textContent = formatMoney(cashWeekly);
       document.getElementById("perksWeekly").textContent = formatMoney(
-        perksWeeklyRaw - trainingWeekly
+        perksWeeklyRaw - trainingWeekly - extraLeaveWeekly
       );
       document.getElementById("trainingWeekly").textContent = formatMoney(trainingWeekly);
+      document.getElementById("leaveWeekly").textContent = formatMoney(extraLeaveWeekly);
       document.getElementById("totalWeekly").textContent = formatMoney(totalWeekly);
 
+      // Hourly comparison
       document.getElementById("baseHourly").textContent = formatMoney(hourlyRate);
       document.getElementById("effectiveHourlyCash").textContent = formatMoney(effectiveHourlyCash);
       document.getElementById("effectiveHourlyTotalSmall").textContent = formatMoney(
         effectiveHourlyTotal
+      );
+
+      // Guaranteed breakdown outputs
+      document.getElementById("guaranteedHoursDisplay").textContent = guaranteedHours.toFixed(1);
+      document.getElementById("guaranteedCashWeekly").textContent = formatMoney(guaranteedCashWeekly);
+      document.getElementById("guaranteedTotalWeekly").textContent = formatMoney(guaranteedTotalWeekly);
+      document.getElementById("guaranteedEffectiveHourly").textContent = formatMoney(
+        guaranteedEffectiveHourly
       );
     }
 
