@@ -265,6 +265,24 @@
         </div>
 
         <div class="field-group">
+          <label for="rainedOffHours">Average rained off hours inside guarantee</label>
+          <div class="field-inline">
+            <input id="rainedOffHours" type="number" min="0" step="0.5" value="0" />
+            <span class="suffix">hours per week</span>
+          </div>
+          <div class="hint">If some guaranteed hours can be paid at a lower rate when you are rained off, put the average here. Use zero if this does not apply.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="rainedOffRatePercent">Pay rate for rained off hours</label>
+          <div class="field-inline">
+            <input id="rainedOffRatePercent" type="number" min="0" max="100" step="1" value="66" />
+            <span class="suffix">% of normal hourly rate</span>
+          </div>
+          <div class="hint">Some contracts pay rained off hours at a lower percentage of your normal rate.</div>
+        </div>
+
+        <div class="field-group">
           <label for="overtimeHours">Overtime hours per week</label>
           <div class="field-inline">
             <input id="overtimeHours" type="number" min="0" step="0.5" value="0" />
@@ -468,6 +486,10 @@
             <span id="guaranteedHoursDisplay">0</span>
           </div>
           <div class="result-row">
+            <span>Rained off hours inside guarantee</span>
+            <span id="rainedOffHoursDisplay">0</span>
+          </div>
+          <div class="result-row">
             <span>Guaranteed weekly cash (base + tools)</span>
             <span id="guaranteedCashWeekly">$0.00</span>
           </div>
@@ -514,6 +536,8 @@
 
       const hoursPerWeek = num("hoursPerWeek");
       const guaranteedHours = num("guaranteedHoursPerWeek");
+      const rainedOffHoursInput = num("rainedOffHours");
+      const rainedOffRatePercent = num("rainedOffRatePercent");
       const overtimeHours = num("overtimeHours");
       const overtimeMultiplier = num("overtimeMultiplier") || 1;
 
@@ -547,7 +571,6 @@
         trainingWeekly = coveredTotal / weeks;
       }
 
-      // Extra leave and sick leave value above minimums
       const MIN_ANNUAL_LEAVE = 20;
       const MIN_SICK_LEAVE = 10;
 
@@ -577,13 +600,21 @@
       const effectiveHourlyTotal = totalHours > 0 ? totalWeekly / totalHours : 0;
       const annualTotal = totalWeekly * 52;
 
-      // Guaranteed breakdown
-      const guaranteedBaseWeekly = hourlyRate * guaranteedHours;
-      const guaranteedToolWeekly = toolAllowanceHourly * guaranteedHours;
+      // Guaranteed breakdown with rained off factor
+      const safeGuaranteedHours = Math.max(0, guaranteedHours);
+      const safeRainedOffHours = Math.min(Math.max(0, rainedOffHoursInput), safeGuaranteedHours);
+      const workedGuaranteedHours = Math.max(0, safeGuaranteedHours - safeRainedOffHours);
+      const rainedOffRate = Math.max(0, rainedOffRatePercent) / 100;
+
+      const guaranteedBaseWeekly =
+        workedGuaranteedHours * hourlyRate +
+        safeRainedOffHours * hourlyRate * rainedOffRate;
+
+      const guaranteedToolWeekly = toolAllowanceHourly * safeGuaranteedHours;
       const guaranteedCashWeekly = guaranteedBaseWeekly + guaranteedToolWeekly;
       const guaranteedTotalWeekly = guaranteedCashWeekly + perksWeeklyRaw;
       const guaranteedEffectiveHourly =
-        guaranteedHours > 0 ? guaranteedTotalWeekly / guaranteedHours : 0;
+        safeGuaranteedHours > 0 ? guaranteedTotalWeekly / safeGuaranteedHours : 0;
 
       // Update main summary
       document.getElementById("weeklyTotal").textContent = formatMoney(totalWeekly);
@@ -607,12 +638,16 @@
       );
 
       // Guaranteed breakdown outputs
-      document.getElementById("guaranteedHoursDisplay").textContent = guaranteedHours.toFixed(1);
-      document.getElementById("guaranteedCashWeekly").textContent = formatMoney(guaranteedCashWeekly);
-      document.getElementById("guaranteedTotalWeekly").textContent = formatMoney(guaranteedTotalWeekly);
-      document.getElementById("guaranteedEffectiveHourly").textContent = formatMoney(
-        guaranteedEffectiveHourly
-      );
+      document.getElementById("guaranteedHoursDisplay").textContent =
+        safeGuaranteedHours.toFixed(1);
+      document.getElementById("rainedOffHoursDisplay").textContent =
+        safeRainedOffHours.toFixed(1);
+      document.getElementById("guaranteedCashWeekly").textContent =
+        formatMoney(guaranteedCashWeekly);
+      document.getElementById("guaranteedTotalWeekly").textContent =
+        formatMoney(guaranteedTotalWeekly);
+      document.getElementById("guaranteedEffectiveHourly").textContent =
+        formatMoney(guaranteedEffectiveHourly);
     }
 
     const inputs = document.querySelectorAll("input[type='number']");
