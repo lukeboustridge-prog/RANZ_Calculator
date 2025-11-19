@@ -125,6 +125,24 @@
       white-space: nowrap;
     }
 
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: #374151;
+    }
+
+    .radio-option input {
+      flex: 0 0 auto;
+    }
+
     .results-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -210,16 +228,16 @@
     <header class="header">
       <img src="RANZ Logo RGB.png" alt="Roofing Association of New Zealand logo" />
       <div>
-        <h1>RANZ Payrate Calculator</h1>
+        <h1>RANZ Apprentice Payrate Calculator</h1>
         <p class="org-tagline">Roofing Association of New Zealand</p>
       </div>
     </header>
 
     <p class="tagline">
-      This tool helps you look past the hourly rate and understand the full value of a roofing career opportunity. 
-      Once you put the details in, it shows the total weekly and yearly value of the whole package, including things like training support, vehicle use, fuel, uniforms and any extra leave. 
-      It also gets you thinking about the non monetary benefits that influence your day to day life, not just the figure printed next to the hourly rate. 
-      It is designed to help you slow down, take everything into account, and make a well informed decision. It is a guide only and does not replace independent financial advice.
+      This tool helps you look at the full value of a roofing apprenticeship, not just the hourly rate.
+      Put in the details of a job offer and it will show you the total weekly and yearly value of the package,
+      including things like vehicle use, fuel, uniforms, training support, extra leave and KiwiSaver.
+      It is a guide only and does not replace independent financial advice.
     </p>
 
     <div class="grid">
@@ -227,13 +245,13 @@
         <h2>Pay and hours</h2>
 
         <div class="field-group">
-          <label for="hourlyRate">Base hourly rate</label>
+          <label for="hourlyRate">Headline hourly rate</label>
           <div class="field-inline">
             <span class="suffix">$</span>
             <input id="hourlyRate" type="number" min="0" step="1" value="25" />
             <span class="suffix">per hour</span>
           </div>
-          <div class="hint">Your standard hourly rate before tax.</div>
+          <div class="hint">Use the rate the employer tells you. The KiwiSaver section will sort out if this is cash or a package rate.</div>
         </div>
 
         <div class="field-group">
@@ -383,7 +401,7 @@
       </section>
 
       <section class="card">
-        <h2>Leave and entitlements</h2>
+        <h2>Leave, entitlements and KiwiSaver</h2>
 
         <div class="field-group">
           <label for="annualLeaveDays">Total annual leave</label>
@@ -403,8 +421,37 @@
           <div class="hint">NZ minimum is 10 days. Extra days are counted as extra value.</div>
         </div>
 
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 0.75rem 0;" />
+
+        <div class="field-group">
+          <label for="kiwiSaverRate">Employer KiwiSaver contribution</label>
+          <div class="field-inline">
+            <input id="kiwiSaverRate" type="number" min="0" max="20" step="0.5" value="3" />
+            <span class="suffix">% of your gross pay</span>
+          </div>
+          <div class="hint">Minimum is currently 3 percent but may increase. Set this to whatever is in your contract.</div>
+        </div>
+
+        <div class="field-group">
+          <label>How the hourly rate is described</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="kiwiMode" value="ontop" checked />
+              <span>The hourly rate you entered is the cash you get paid and KiwiSaver is on top.</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="kiwiMode" value="included" />
+              <span>The hourly rate you entered is a total package that already includes employer KiwiSaver.</span>
+            </label>
+          </div>
+          <div class="hint">
+            Cash hourly rate used in this calculator:
+            <span id="cashHourlyDisplay">$0.00</span>
+          </div>
+        </div>
+
         <div class="hint">
-          Extra leave days are converted into a weekly dollar value using your base hourly rate and normal daily hours.
+          Extra leave days and employer KiwiSaver contributions are treated as part of your total package value.
         </div>
       </section>
     </div>
@@ -416,7 +463,7 @@
           <h3>Total weekly package</h3>
           <div id="weeklyTotal" class="value">$0.00</div>
           <div class="sub">
-            Cash plus perks and training support.
+            Cash plus perks, training, extra leave and KiwiSaver.
           </div>
         </div>
 
@@ -457,13 +504,17 @@
             <span id="leaveWeekly">$0.00</span>
           </div>
           <div class="result-row">
+            <span>Employer KiwiSaver contribution (weekly)</span>
+            <span id="kiwiWeekly">$0.00</span>
+          </div>
+          <div class="result-row">
             <span>Total weekly package</span>
             <span id="totalWeekly">$0.00</span>
           </div>
 
           <h4 style="margin-top: 0.75rem;">Hourly comparison</h4>
           <div class="result-row">
-            <span>Base hourly rate</span>
+            <span>Base hourly rate (cash paid)</span>
             <span id="baseHourly">$0.00</span>
           </div>
           <div class="result-row">
@@ -493,7 +544,11 @@
             <span id="guaranteedCashWeekly">$0.00</span>
           </div>
           <div class="result-row">
-            <span>Guaranteed weekly package (cash + perks)</span>
+            <span>Employer KiwiSaver on guaranteed cash</span>
+            <span id="guaranteedKiwiWeekly">$0.00</span>
+          </div>
+          <div class="result-row">
+            <span>Guaranteed weekly package (cash + perks + KiwiSaver)</span>
             <span id="guaranteedTotalWeekly">$0.00</span>
           </div>
           <div class="result-row">
@@ -504,13 +559,13 @@
       </div>
 
       <p class="result-note">
-        This calculator is for comparison and planning only. It ignores tax and things like KiwiSaver and is not financial advice.
+        This calculator is for comparison and planning only. It ignores tax and things like employee KiwiSaver deductions and is not financial advice.
         Use it to compare different offers on a like for like basis.
       </p>
     </section>
 
     <p class="footer-note">
-      Tip: Try putting in two different offers and compare both the effective hourly value and the guaranteed weekly package.
+      Tip: Try putting in two different offers and compare the effective hourly value, the KiwiSaver contribution and the guaranteed weekly package.
     </p>
   </div>
 
@@ -530,7 +585,7 @@
     }
 
     function recalc() {
-      const hourlyRate = num("hourlyRate");
+      const hourlyRateInput = num("hourlyRate");
       const toolAllowanceHourly = num("toolAllowanceHourly");
 
       const hoursPerWeek = num("hoursPerWeek");
@@ -552,6 +607,17 @@
 
       const annualLeaveDays = num("annualLeaveDays");
       const sickLeaveDays = num("sickLeaveDays");
+
+      const kiwiRatePercent = num("kiwiSaverRate");
+      const kiwiModeElement = document.querySelector("input[name='kiwiMode']:checked");
+      const kiwiMode = kiwiModeElement ? kiwiModeElement.value : "ontop";
+      const kiwiRate = Math.max(0, kiwiRatePercent) / 100;
+
+      // Work out actual cash hourly rate
+      let hourlyRate = hourlyRateInput;
+      if (kiwiMode === "included" && kiwiRate > 0) {
+        hourlyRate = hourlyRateInput / (1 + kiwiRate);
+      }
 
       const totalHours = hoursPerWeek + overtimeHours;
 
@@ -593,12 +659,15 @@
         trainingWeekly +
         extraLeaveWeekly;
 
-      const totalWeekly = cashWeekly + perksWeeklyRaw;
+      const kiwiWeekly = cashWeekly * kiwiRate;
+
+      const totalWeekly = cashWeekly + perksWeeklyRaw + kiwiWeekly;
 
       const effectiveHourlyCash = totalHours > 0 ? cashWeekly / totalHours : 0;
       const effectiveHourlyTotal = totalHours > 0 ? totalWeekly / totalHours : 0;
       const annualTotal = totalWeekly * 52;
 
+      // Guaranteed breakdown with rained off factor
       const safeGuaranteedHours = Math.max(0, guaranteedHours);
       const safeRainedOffHours = Math.min(Math.max(0, rainedOffHoursInput), safeGuaranteedHours);
       const workedGuaranteedHours = Math.max(0, safeGuaranteedHours - safeRainedOffHours);
@@ -610,43 +679,59 @@
 
       const guaranteedToolWeekly = toolAllowanceHourly * safeGuaranteedHours;
       const guaranteedCashWeekly = guaranteedBaseWeekly + guaranteedToolWeekly;
-      const guaranteedTotalWeekly = guaranteedCashWeekly + perksWeeklyRaw;
+      const guaranteedKiwiWeekly = guaranteedCashWeekly * kiwiRate;
+      const guaranteedTotalWeekly = guaranteedCashWeekly + perksWeeklyRaw + guaranteedKiwiWeekly;
       const guaranteedEffectiveHourly =
         safeGuaranteedHours > 0 ? guaranteedTotalWeekly / safeGuaranteedHours : 0;
 
+      // Update top summary
       document.getElementById("weeklyTotal").textContent = formatMoney(totalWeekly);
       document.getElementById("annualTotal").textContent = formatMoney(annualTotal);
       document.getElementById("effectiveHourlyTotal").textContent = formatMoney(effectiveHourlyTotal);
 
+      // Weekly breakdown
       document.getElementById("cashWeekly").textContent = formatMoney(cashWeekly);
       document.getElementById("perksWeekly").textContent = formatMoney(
         perksWeeklyRaw - trainingWeekly - extraLeaveWeekly
       );
       document.getElementById("trainingWeekly").textContent = formatMoney(trainingWeekly);
       document.getElementById("leaveWeekly").textContent = formatMoney(extraLeaveWeekly);
+      document.getElementById("kiwiWeekly").textContent = formatMoney(kiwiWeekly);
       document.getElementById("totalWeekly").textContent = formatMoney(totalWeekly);
 
+      // Hourly comparison
       document.getElementById("baseHourly").textContent = formatMoney(hourlyRate);
       document.getElementById("effectiveHourlyCash").textContent = formatMoney(effectiveHourlyCash);
       document.getElementById("effectiveHourlyTotalSmall").textContent = formatMoney(
         effectiveHourlyTotal
       );
 
+      // Guaranteed breakdown outputs
       document.getElementById("guaranteedHoursDisplay").textContent =
         safeGuaranteedHours.toFixed(1);
       document.getElementById("rainedOffHoursDisplay").textContent =
         safeRainedOffHours.toFixed(1);
       document.getElementById("guaranteedCashWeekly").textContent =
         formatMoney(guaranteedCashWeekly);
+      document.getElementById("guaranteedKiwiWeekly").textContent =
+        formatMoney(guaranteedKiwiWeekly);
       document.getElementById("guaranteedTotalWeekly").textContent =
         formatMoney(guaranteedTotalWeekly);
       document.getElementById("guaranteedEffectiveHourly").textContent =
         formatMoney(guaranteedEffectiveHourly);
+
+      // Cash hourly display for KiwiSaver section
+      document.getElementById("cashHourlyDisplay").textContent = formatMoney(hourlyRate);
     }
 
-    const inputs = document.querySelectorAll("input[type='number']");
-    inputs.forEach((input) => {
+    const numberInputs = document.querySelectorAll("input[type='number']");
+    numberInputs.forEach((input) => {
       input.addEventListener("input", recalc);
+    });
+
+    const kiwiRadios = document.querySelectorAll("input[name='kiwiMode']");
+    kiwiRadios.forEach((radio) => {
+      radio.addEventListener("change", recalc);
     });
 
     recalc();
