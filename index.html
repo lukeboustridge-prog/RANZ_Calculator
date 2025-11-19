@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RANZ Payrate Calculator</title>
+  <title>RANZ Apprentice Payrate Calculator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -208,19 +208,18 @@
 <body>
   <div class="app">
     <header class="header">
-      <!-- Make sure this filename matches what you commit to the repo -->
       <img src="RANZ Logo RGB.png" alt="Roofing Association of New Zealand logo" />
       <div>
-        <h1>RANZ Payrate Calculator</h1>
+        <h1>RANZ Apprentice Payrate Calculator</h1>
         <p class="org-tagline">Roofing Association of New Zealand</p>
       </div>
     </header>
 
     <p class="tagline">
-      This tool helps you look past the hourly rate and understand the full value of a roofing career opportunity. 
-      Once you put the details in, it shows the total weekly and yearly value of the whole package, including things like training support, vehicle use, fuel, uniforms and any extra leave. 
-      It also gets you thinking about the non monetary benefits that influence your day to day life, not just the figure printed next to the hourly rate. 
-      It is designed to help you slow down, take everything into account, and make a well informed decision. It is a guide only and does not replace independent financial advice.
+      This tool helps you look at the full value of a roofing apprenticeship, not just the hourly rate.
+      Put in the details of a job offer and it will show you the total weekly and yearly value of the package,
+      including things like vehicle use, fuel, uniforms, training support and extra leave. It is a guide only and does not replace
+      independent financial advice.
     </p>
 
     <div class="grid">
@@ -231,7 +230,7 @@
           <label for="hourlyRate">Base hourly rate</label>
           <div class="field-inline">
             <span class="suffix">$</span>
-            <input id="hourlyRate" type="number" min="0" step="0.01" value="25" />
+            <input id="hourlyRate" type="number" min="0" step="1" value="25" />
             <span class="suffix">per hour</span>
           </div>
           <div class="hint">Your standard hourly rate before tax.</div>
@@ -241,7 +240,7 @@
           <label for="toolAllowanceHourly">Tool allowance (hourly)</label>
           <div class="field-inline">
             <span class="suffix">$</span>
-            <input id="toolAllowanceHourly" type="number" min="0" step="0.01" value="0" />
+            <input id="toolAllowanceHourly" type="number" min="0" step="1" value="0" />
             <span class="suffix">per hour</span>
           </div>
           <div class="hint">Any extra hourly amount paid as a tool allowance.</div>
@@ -308,7 +307,7 @@
           <label for="vehicleWeekly">Work vehicle value</label>
           <div class="field-inline">
             <span class="suffix">$</span>
-            <input id="vehicleWeekly" type="number" min="0" step="0.01" value="0" />
+            <input id="vehicleWeekly" type="number" min="0" step="1" value="0" />
             <span class="suffix">per week</span>
           </div>
           <div class="hint">If you get a vehicle you can use, estimate what that is worth to you per week.</div>
@@ -318,7 +317,7 @@
           <label for="fuelWeekly">Fuel card value</label>
           <div class="field-inline">
             <span class="suffix">$</span>
-            <input id="fuelWeekly" type="number" min="0" step="0.01" value="0" />
+            <input id="fuelWeekly" type="number" min="0" step="1" value="0" />
             <span class="suffix">per week</span>
           </div>
           <div class="hint">Average personal fuel you save each week.</div>
@@ -338,7 +337,7 @@
           <label for="phoneWeekly">Phone or phone allowance</label>
           <div class="field-inline">
             <span class="suffix">$</span>
-            <input id="phoneWeekly" type="number" min="0" step="0.01" value="0" />
+            <input id="phoneWeekly" type="number" min="0" step="1" value="0" />
             <span class="suffix">per week</span>
           </div>
         </div>
@@ -347,7 +346,7 @@
           <label for="otherWeekly">Other regular perks</label>
           <div class="field-inline">
             <span class="suffix">$</span>
-            <input id="otherWeekly" type="number" min="0" step="0.01" value="0" />
+            <input id="otherWeekly" type="number" min="0" step="1" value="0" />
             <span class="suffix">per week</span>
           </div>
           <div class="hint">Anything else the employer pays for that saves you money.</div>
@@ -567,7 +566,7 @@
 
       if (trainingCostTotal > 0 && trainingMonths > 0 && trainingCoveredPercent > 0) {
         const coveredTotal = trainingCostTotal * (trainingCoveredPercent / 100);
-        const weeks = trainingMonths * 4.345; // average weeks per month
+        const weeks = trainingMonths * 4.345;
         trainingWeekly = coveredTotal / weeks;
       }
 
@@ -600,7 +599,6 @@
       const effectiveHourlyTotal = totalHours > 0 ? totalWeekly / totalHours : 0;
       const annualTotal = totalWeekly * 52;
 
-      // Guaranteed breakdown with rained off factor
       const safeGuaranteedHours = Math.max(0, guaranteedHours);
       const safeRainedOffHours = Math.min(Math.max(0, rainedOffHoursInput), safeGuaranteedHours);
       const workedGuaranteedHours = Math.max(0, safeGuaranteedHours - safeRainedOffHours);
@@ -616,12 +614,10 @@
       const guaranteedEffectiveHourly =
         safeGuaranteedHours > 0 ? guaranteedTotalWeekly / safeGuaranteedHours : 0;
 
-      // Update main summary
       document.getElementById("weeklyTotal").textContent = formatMoney(totalWeekly);
       document.getElementById("annualTotal").textContent = formatMoney(annualTotal);
       document.getElementById("effectiveHourlyTotal").textContent = formatMoney(effectiveHourlyTotal);
 
-      // Weekly breakdown
       document.getElementById("cashWeekly").textContent = formatMoney(cashWeekly);
       document.getElementById("perksWeekly").textContent = formatMoney(
         perksWeeklyRaw - trainingWeekly - extraLeaveWeekly
@@ -630,14 +626,12 @@
       document.getElementById("leaveWeekly").textContent = formatMoney(extraLeaveWeekly);
       document.getElementById("totalWeekly").textContent = formatMoney(totalWeekly);
 
-      // Hourly comparison
       document.getElementById("baseHourly").textContent = formatMoney(hourlyRate);
       document.getElementById("effectiveHourlyCash").textContent = formatMoney(effectiveHourlyCash);
       document.getElementById("effectiveHourlyTotalSmall").textContent = formatMoney(
         effectiveHourlyTotal
       );
 
-      // Guaranteed breakdown outputs
       document.getElementById("guaranteedHoursDisplay").textContent =
         safeGuaranteedHours.toFixed(1);
       document.getElementById("rainedOffHoursDisplay").textContent =
